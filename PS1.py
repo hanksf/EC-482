@@ -19,17 +19,26 @@ def Sims_Uhlig(n_sims=10000, series_length=100, true_prior = [0.8, 1.1, 31],y_0=
         for j in range(series_length-1):
             y_matrix[j+2,:] = rho*y_matrix[j+1,:]+epsilon[j+1,:]
         estimates[i,:] = np.diagonal(y_matrix[1:].T@y_matrix[:100])/np.diagonal(y_matrix[:100].T@y_matrix[:100])
-    return estimates
+    return estimates, rho_grid
 
 def empirical_densities(n_sims=10000, series_length=100, true_prior = [0.8, 1.1, 31],y_0=0):
-    estimates = Sims_Uhlig(n_sims=n_sims, series_length=series_length, true_prior = true_prior,y_0=y_0)
-    fig, axes = plt.subplots(plot_values.size, 1,figsize)
-    #fig, axes = plt.subplots(plot_values.size, plot_values.size,figsize)
-    axes[0,0].hist(estimates[10,:])
+    draw_estimates, rho_grid = Sims_Uhlig(n_sims=n_sims, series_length=series_length, true_prior = true_prior,y_0=y_0)
+    fig, axes = plt.subplots(2, 2, figsize=(10,15))
+    #fig, axes = plt.subplots(2,2)
+    axes[0,0].hist(draw_estimates[10,:], bins=20, density=True)
     axes[0,0].set(title='rho = 0.9')
-    axes[1,0].hist(estimates[20,:])
+    axes[1,0].hist(draw_estimates[20,:], bins =20, density=True)
     axes[1,0].set(title='rho = 1')
-    plt.plot()
+    #creating estimates of density conditional on rho_hat
+    index1  = (draw_estimates>0.895)*(draw_estimates<0.905)
+    density1 = np.sum(index1,axis=1)/np.sum(index1)
+    axes[0,1].bar(rho_grid,density1,0.01)
+    axes[0,1].set(title='rho_hat = 0.9')
+    index2 = (draw_estimates>0.995)*(draw_estimates<1.005)
+    density2 = np.sum(index2,axis=1)/np.sum(index2)
+    axes[1,1].bar(rho_grid,density2,0.01)
+    axes[1,1].set(title='rho_hat = 1')
+    plt.show()
 
 #%%
 #test = Sims_Uhlig()
@@ -38,4 +47,11 @@ def empirical_densities(n_sims=10000, series_length=100, true_prior = [0.8, 1.1,
 #%%
 empirical_densities()
 
-# %%
+#%%
+#Question 2 functions
+
+def Var(Data,lags):
+    Y = Data[:,lags].flatten('F')
+    
+
+
