@@ -2,6 +2,7 @@
 #imports
 import numpy as np
 import scipy as sci
+import matplotlib.pyplot as plt
 
 #%%
 #Question 1 functions definitions
@@ -20,6 +21,21 @@ def Sims_Uhlig(n_sims=10000, series_length=100, true_prior = [0.8, 1.1, 31],y_0=
         estimates[i,:] = np.diagonal(y_matrix[1:].T@y_matrix[:100])/np.diagonal(y_matrix[:100].T@y_matrix[:100])
     return estimates
 
+def empirical_densities(n_sims=10000, series_length=100, true_prior = [0.8, 1.1, 31],y_0=0):
+    estimates = Sims_Uhlig(n_sims=n_sims, series_length=series_length, true_prior = true_prior,y_0=y_0)
+    fig, axes = plt.subplots(plot_values.size, 1,figsize)
+    #fig, axes = plt.subplots(plot_values.size, plot_values.size,figsize)
+    axes[0,0].hist(estimates[10,:])
+    axes[0,0].set(title='rho = 0.9')
+    axes[1,0].hist(estimates[20,:])
+    axes[1,0].set(title='rho = 1')
+    plt.plot()
+
 #%%
-test = Sims_Uhlig()
-print(test)
+#test = Sims_Uhlig()
+#print(test)
+
+#%%
+empirical_densities()
+
+# %%
