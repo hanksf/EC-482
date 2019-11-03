@@ -77,6 +77,21 @@ def forecast(Data,lags, coef,periods_ahead):
     return y_forward
 
 
+def part_a(Data,lags,sample_end=60):
+    quarter_1_gdp = np.zeros(np.size(Data,0)-start)
+    quarter_4_gdp = np.zeros(np.size(Data,0)-start)
+    quarter_1_infl = np.zeros(np.size(Data,0)-start)
+    quarter_4_infl = np.zeros(np.size(Data,0)-start)
+    for t in range(np.size(Data,0)-start-1):
+        sample = Data[:t+2+60,:]
+        coefficients = Var(sample,lags)
+        forecast_1 = forecast(Data,lags,coefficients,1)
+        quarter_1_gdp[t] = forecast_1[0]-Data[0,t+2+60]
+        quarter_1_infl[t] = forecast_1[1]-Data[1,t+2+60]
+        
+
+
+
 #%%
 Matlab_file= loadmat('dataVARmedium.mat')
 Dataset = Matlab_file['y']
