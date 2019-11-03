@@ -50,8 +50,22 @@ empirical_densities()
 #%%
 #Question 2 functions
 
+def create_X(Data,lags):
+    x = np.zeros((np.size(Data,0)-lags,np.size(Data,1)*lags+1))
+    x[:,0]=1
+    for i in range(np.size(Data,0)-lags):
+        x[i,1:]=np.flip(Data[i:i+lags,:],0).flatten('C')
+    X = np.kron(np.identity(np.size(Data,0)-lags),x)
+    return X
+
 def Var(Data,lags):
-    Y = Data[:,lags].flatten('F')
+    Y = Data[lags:,:].flatten('F')
+    X = create_X(Data,lags)
+    Beta = np.linalg.inv(X.T@X)@(X.T@Y)
+    return Beta
+
+#%%
+
     
 
 
