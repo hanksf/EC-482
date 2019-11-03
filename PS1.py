@@ -3,7 +3,8 @@
 import numpy as np
 import scipy as sci
 import matplotlib.pyplot as plt
-
+import tables
+from scipy.io import loadmat
 #%%
 #Question 1 functions definitions
 #holy shit the loops
@@ -45,7 +46,7 @@ def empirical_densities(n_sims=10000, series_length=100, true_prior = [0.8, 1.1,
 #print(test)
 
 #%%
-empirical_densities()
+#empirical_densities()
 
 #%%
 #Question 2 functions
@@ -55,7 +56,7 @@ def create_X(Data,lags):
     x[:,0]=1
     for i in range(np.size(Data,0)-lags):
         x[i,1:]=np.flip(Data[i:i+lags,:],0).flatten('C')
-    X = np.kron(np.identity(np.size(Data,0)-lags),x)
+    X = np.kron(np.identity(np.size(Data,1)),x)
     return X
 
 def Var(Data,lags):
@@ -65,6 +66,12 @@ def Var(Data,lags):
     return Beta
 
 #%%
+Matlab_file= loadmat('dataVARmedium.mat')
+Dataset = Matlab_file['y']
+
+test = np.array([[0,0],[1,2],[1.5,3],[2,1],[3,2],[1,4],[2,5],[2,2]])
+print(Var(test,1))
+
 
     
 
