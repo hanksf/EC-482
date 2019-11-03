@@ -55,7 +55,7 @@ def create_X(Data,lags):
     x = np.zeros((np.size(Data,0)-lags,np.size(Data,1)*lags+1))
     x[:,0]=1
     for i in range(np.size(Data,0)-lags):
-        x[i,1:]=np.flip(Data[i:i+lags,:],0).flatten('C')
+        x[i,1:]=np.flip(Data[i:(i+lags),:],0).flatten('C')
     X = np.kron(np.identity(np.size(Data,1)),x)
     return X
 
@@ -63,7 +63,17 @@ def Var(Data,lags):
     Y = Data[lags:,:].flatten('F')
     X = create_X(Data,lags)
     Beta = np.linalg.inv(X.T@X)@(X.T@Y)
-    return Beta
+    return np.reshape(Beta,(np.size(Data,1),1+np.size(Data,1)*lags))
+
+
+def forecast(Data,lags, coef,periods_ahead):
+    predictors = np.insert(np.flip(Data[(np.size(Data,0)-lags):,:],0).flatten('C'),0,1)
+    for t in range(periods_ahead):
+        y_forward = coef@predictors
+        if t<periods_ahead-1:
+            predictors = np.insert(np.delete(predictors,-1,axis=1),1,y_forward,axis=1)
+    return y_forward
+
 
 #%%
 Matlab_file= loadmat('dataVARmedium.mat')
@@ -71,6 +81,7 @@ Dataset = Matlab_file['y']
 
 test = np.array([[0,0],[1,2],[1.5,3],[2,1],[3,2],[1,4],[2,5],[2,2]])
 print(Var(test,1))
+print(forecast(test,1,Var(test,1),1))
 
 
     
