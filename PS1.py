@@ -78,17 +78,26 @@ def forecast(Data,lags, coef,periods_ahead):
 
 
 def part_a(Data,lags,sample_end=60):
-    quarter_1_gdp = np.zeros(np.size(Data,0)-start)
-    quarter_4_gdp = np.zeros(np.size(Data,0)-start)
-    quarter_1_infl = np.zeros(np.size(Data,0)-start)
-    quarter_4_infl = np.zeros(np.size(Data,0)-start)
-    for t in range(np.size(Data,0)-start-1):
+    quarter_1_gdp = np.zeros(np.size(Data,0)-sample_end-1)
+    quarter_4_gdp = np.zeros(np.size(Data,0)-sample_end-1)
+    quarter_1_infl = np.zeros(np.size(Data,0)-sample_end-5)
+    quarter_4_infl = np.zeros(np.size(Data,0)-sample_end-5)
+    for t in range(np.size(Data,0)-sample_end-2):
         sample = Data[:t+2+60,:]
         coefficients = Var(sample,lags)
         forecast_1 = forecast(Data,lags,coefficients,1)
-        quarter_1_gdp[t] = forecast_1[0]-Data[0,t+2+60]
-        quarter_1_infl[t] = forecast_1[1]-Data[1,t+2+60]
-        
+        quarter_1_gdp[t] = forecast_1[0]-Data[t+3+60,0]
+        quarter_1_infl[t] = forecast_1[1]-Data[t+3+60,1]
+        if t+5+60<199:
+            forecast_4 = forecast(Data,lags,coefficients,1)
+            quarter_4_gdp[t] = forecast_4[0]-Data[t+6+60,0]
+            quarter_4_infl[t] = forecast_4[1]-Data[t+6+60,0]
+    MSFE_gdp_1 = np.sum(quarter_1_gdp**2)
+    MSFE_gdp_4 = np.sum(quarter_4_gdp**2)  
+    MSFE_infl_1 = np.sum(quarter_1_infl**2)  
+    MSFE_infl_4 = np.sum(quarter_4_infl**2)
+    return MSFE_gdp_1, MSFE_gdp_4, MSFE_infl_1, MSFE_infl_4
+            
 
 
 
@@ -96,14 +105,14 @@ def part_a(Data,lags,sample_end=60):
 Matlab_file= loadmat('dataVARmedium.mat')
 Dataset = Matlab_file['y']
 
-test = np.array([[0,0],[1,2],[1.5,3],[2,1],[3,2],[1,4],[2,5],[2,2]])
-values = Var(test,1)
-print(values)
-print(forecast(test,1,values,2))
-print(values[1,0]+values[1,2]*(values[1,0]+values[1,1]*2+values[1,2]*2)+values[1,1]*(values[0,0]+values[0,1]*2+values[0,2]*2))
+# test = np.array([[0,0],[1,2],[1.5,3],[2,1],[3,2],[1,4],[2,5],[2,2]])
+# values = Var(test,1)
+# print(values)
+# print(forecast(test,1,values,2))
+# print(values[1,0]+values[1,2]*(values[1,0]+values[1,1]*2+values[1,2]*2)+values[1,1]*(values[0,0]+values[0,1]*2+values[0,2]*2))
 
 
-
+print(part_a(Dataset,5))
     
 
 
