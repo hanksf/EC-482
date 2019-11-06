@@ -122,7 +122,7 @@ def minnesota_prior(Data,lags, lambd):
 
 def b_Var(Data,lags,b, Omega):
     x = create_x(Data,lags)
-    B = np.inv(x.T@x+np.inv(Omega))@(x.T@Data[lags:,:]+inv(Omega)@b)
+    B = np.inv(x.T@x+np.inv(Omega))@(x.T@Data[lags:,:]+np.inv(Omega)@b)
     return B
 
 
