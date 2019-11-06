@@ -57,6 +57,7 @@ def create_x(Data,lags):
     # set first column to 1
     x[:,0]=1
     for i in range(np.size(Data,0)-lags):
+        #flatten row by row of flipped data
         x[i,1:]=np.flip(Data[i:(i+lags),:],0).flatten('C')
     return x
 
@@ -66,14 +67,19 @@ def create_X(Data,lags):
     return X
 
 def Var(Data,lags):
+    #flattern column by column
     Y = Data[lags:,:].flatten('F')
     X = create_X(Data,lags)
+    #OLS formula
     Beta = np.linalg.inv(X.T@X)@(X.T@Y)
+    #reshape from beta to B
     return np.reshape(Beta,(np.size(Data,1),1+np.size(Data,1)*lags))
 
 
 def forecast(Data,lags, coef,periods_ahead):
-    predictors = np.insert(np.flip(Data[(np.size(Data,0)-lags):,:],0).flatten('C'),0,1)
+    #flattern row by row
+    #inserts a 1 into row 1????
+    predictors = np.hstack([np.ones(((np.size(Data,0)-lags),1)),np.flip(Data[(np.size(Data,0)-lags):,:],0)])
     for t in range(periods_ahead):
         y_forward = coef@predictors
         if t<periods_ahead-1:
