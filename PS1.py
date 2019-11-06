@@ -107,7 +107,7 @@ def part_a(Data,lags,sample_end=64):
     MSFE_gdp_4 = np.sum(quarter_4_gdp**2)/np.size(quarter_4_gdp)  
     MSFE_infl_1 = np.sum(quarter_1_infl**2)/np.size(quarter_1_infl)  
     MSFE_infl_4 = np.sum(quarter_4_infl**2)/np.size(quarter_4_infl) 
-    return MSFE_gdp_1, MSFE_gdp_4, MSFE_infl_1, MSFE_infl_4, quarter_1_gdp, quarter_1_infl
+    return MSFE_gdp_1, MSFE_gdp_4, MSFE_infl_1, MSFE_infl_4
 
 def AR_1(Data):
     Estimates = np.zeros(np.size(Data,1))
@@ -155,7 +155,7 @@ def part_b(Data,lags,sample_end=64,lambd=0.2):
     MSFE_gdp_4 = np.sum(quarter_4_gdp**2)/np.size(quarter_4_gdp)  
     MSFE_infl_1 = np.sum(quarter_1_infl**2)/np.size(quarter_1_infl)  
     MSFE_infl_4 = np.sum(quarter_4_infl**2)/np.size(quarter_4_infl) 
-    return MSFE_gdp_1, MSFE_gdp_4, MSFE_infl_1, MSFE_infl_4, quarter_1_gdp, quarter_1_infl    
+    return MSFE_gdp_1, MSFE_gdp_4, MSFE_infl_1, MSFE_infl_4   
 
 def errors(Data,lags,coef):
     X = create_X(Data,lags)
@@ -164,18 +164,20 @@ def errors(Data,lags,coef):
     epsilon_hat = np.reshape(epsilon_hat,(np.size(Data,0)-lags,np.size(Data,1)))
     return epsilon_hat.T@epsilon_hat
 
-# def optimal_lambda(Data, lags, n, T):
-#     lambda_grid = np.logspace(0.05,5,num=50)
-#     postierior_lambda = np.zeros(50)
-#     for j in range(50):
-#         lambd = lambda_grid[j]
-#         b, Omega = minnesota_prior(Data,lags, lambd)
-#         coefficients = b_Var(Data,lags, b, Omega)
-#         error_sq = errors(Data, lags,coefficients)
-#         phi = np.diag(AR_1(Data))
-#         x = create_x(Data,lags)
-#         postierior_lambda[j] = np.log(math.pi**(-n*T*0.5)*numpy.linalg.det(phi)**(-n/2)*numpy.linalg.det(x.T@x+np.linalg.inv(Omega))**(-m/2)*np.linalg.det(phi+))
-#     return op_lambda
+def optimal_lambda(Data, lags, n, T, d):
+    lambda_grid = np.logspace(0.05,5,num=50)
+    postierior_lambda = np.zeros(50)
+    for j in range(50):
+        lambd = lambda_grid[j]
+        b, Omega = minnesota_prior(Data,lags, lambd)
+        coefficients = b_Var(Data,lags, b, Omega)
+        error_sq = errors(Data, lags,coefficients)
+        phi = np.diag(AR_1(Data))
+        x = create_x(Data,lags)
+        # I don't think phi is needed as it is constant across lambda (numpy.linalg.det(phi)**(-d/2)
+        postierior_lambda[j] = np.log(numpy.linalg.det(x.T@x+np.linalg.inv(Omega))**(-m/2)*np.linalg.det(phi+error+((coefficients-b).T)@np.linalg.inv(Omega)@(coefficients-b))**(-(T+d)/2))
+    opt_lambda = lambda_grid[np.argmax(postierior_lambda)]
+    return opt_lambda
 
 def part_c(Data,lags,sample_end=64):
     quarter_1_gdp = np.zeros(np.size(Data,0)-sample_end)
@@ -207,13 +209,7 @@ print(errors(Dataset,5,test).shape)
 
 #print(minnesota_prior(Dataset, 5, 0.2))
 
-MSE1, MSE2, MSE3, MSE4, vector1, vector2 =  part_b(Dataset,5)
-
-print(MSE1, MSE2, MSE3, MSE4)
-plt.plot(vector1**2)
-plt.show()
-plt.plot(vector2**2)
-plt.show()
+# print(part_a(Dataset,5))
 # print(part_b(Dataset,5))
 
 
