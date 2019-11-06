@@ -118,11 +118,11 @@ def minnesota_prior(Data,lags, lambd):
     Omega = np.zeros((1+lags*np.size(Data,1),1+lags*np.size(Data,1)))
     Omega[0,0]= 10**6
     Omega[1:,1:] = np.kron(np.diag(np.linspace(1,lags,num=lags)),np.diag(AR_1(Data)**(-1)))*lambd**2
-    return np.reshape(b,(np.size(Data,1),1+np.size(Data,1)*lags)), Omega
+    return np.reshape(b,(np.size(Data,1),1+np.size(Data,1)*lags)).T, Omega
 
 def b_Var(Data,lags,b, Omega):
     x = create_x(Data,lags)
-    B = np.linalg.inv(x.T@x+np.linalg.inv(Omega))@(x.T@Data[lags:,:]+np.linalg.inv(Omega)@b)
+    B = (np.linalg.inv(x.T@x+np.linalg.inv(Omega))@(x.T@Data[lags:,:]+np.linalg.inv(Omega)@b)).T
     return B
 
 
@@ -159,7 +159,7 @@ Dataset = Matlab_file['y']
 
 #print(minnesota_prior(Dataset, 5, 0.2))
 
-#print(part_a(Dataset,5))
+print(part_a(Dataset,5))
 print(part_b(Dataset,5))
 
 
