@@ -19,7 +19,8 @@ def Sims_Uhlig(n_sims=10000, series_length=100, true_prior = [0.8, 1.1, 31],y_0=
         y_matrix[1,:] = epsilon[0,:]
         for j in range(series_length-1):
             y_matrix[j+2,:] = rho*y_matrix[j+1,:]+epsilon[j+1,:]
-        estimates[i,:] = np.diagonal(y_matrix[1:].T@y_matrix[:100])/np.diagonal(y_matrix[:100].T@y_matrix[:100])
+        #note the y_matrix has 101 elements so doing series_length cuts off the last element of the y_matrix
+        estimates[i,:] = np.diagonal(y_matrix[1:].T@y_matrix[:series_length])/np.diagonal(y_matrix[:series_length].T@y_matrix[:series_length])
     return estimates, rho_grid
 
 def empirical_densities(n_sims=10000, series_length=100, true_prior = [0.8, 1.1, 31],y_0=0):
@@ -51,13 +52,16 @@ def empirical_densities(n_sims=10000, series_length=100, true_prior = [0.8, 1.1,
 #%%
 #Question 2 functions
 
-def create_X(Data,lags):
+def create_x(Data,lags):
     x = np.zeros((np.size(Data,0)-lags,np.size(Data,1)*lags+1))
     # set first column to 1
     x[:,0]=1
     for i in range(np.size(Data,0)-lags):
-        
         x[i,1:]=np.flip(Data[i:(i+lags),:],0).flatten('C')
+    return x
+
+def create_X(Data,lags):
+    x = create_x(Data,lags)
     X = np.kron(np.identity(np.size(Data,1)),x)
     return X
 
@@ -79,38 +83,62 @@ def forecast(Data,lags, coef,periods_ahead):
 
 def part_a(Data,lags,sample_end=60):
     quarter_1_gdp = np.zeros(np.size(Data,0)-sample_end-1)
-    quarter_4_gdp = np.zeros(np.size(Data,0)-sample_end-1)
-    quarter_1_infl = np.zeros(np.size(Data,0)-sample_end-5)
+    quarter_4_gdp = np.zeros(np.size(Data,0)-sample_end-5)
+    quarter_1_infl = np.zeros(np.size(Data,0)-sample_end-1)
     quarter_4_infl = np.zeros(np.size(Data,0)-sample_end-5)
     for t in range(np.size(Data,0)-sample_end-2):
         sample = Data[:t+2+60,:]
         coefficients = Var(sample,lags)
-        forecast_1 = forecast(Data,lags,coefficients,1)
-        quarter_1_gdp[t] = forecast_1[0]-Data[t+3+60,0]
-        quarter_1_infl[t] = forecast_1[1]-Data[t+3+60,1]
-        if t+5+60<199:
-            forecast_4 = forecast(Data,lags,coefficients,1)
-            quarter_4_gdp[t] = forecast_4[0]-Data[t+6+60,0]
-            quarter_4_infl[t] = forecast_4[1]-Data[t+6+60,0]
+        forecast_1 = forecast(sample,lags,coefficients,1)
+        quarter_1_gdp[t] = forecast_1[0]-Data[t+2+60,0]
+        quarter_1_infl[t] = forecast_1[1]-Data[t+2+60,1]
+        if t+5+60<=199:
+            forecast_4 = forecast(sample,lags,coefficients,4)
+            quarter_4_gdp[t] = (forecast_4[0]-Data[t+5+60,0])/4
+            quarter_4_infl[t] = (forecast_4[1]-Data[t+5+60,0])/4
     MSFE_gdp_1 = np.sum(quarter_1_gdp**2)
     MSFE_gdp_4 = np.sum(quarter_4_gdp**2)  
     MSFE_infl_1 = np.sum(quarter_1_infl**2)  
     MSFE_infl_4 = np.sum(quarter_4_infl**2)
     return MSFE_gdp_1, MSFE_gdp_4, MSFE_infl_1, MSFE_infl_4
+
+def AR_1(Data):
+    Estimates = np.zeros(np.size(Data,1))
+    for j in range(np.size(Data,1)):
+        ar_coeff = ((Data[1:,j].T)@Data[:np.size(Data,0)-1,j])/((Data[:np.size(Data,0)-1,j].T)@Data[:np.size(Data,0)-1,j])
+        errors = Data[:np.size(Data,0)-1,j] - ar_coeff* Data[1:,j]
+        Estimates[j] = np.sum(errors**2)/(np.size(Data,0)-1)
+    return Estimates
+        
+
+def minnesota_prior(Data,lags, lambd):
+    #create b
+    #note need to convert to 2D vector from 1D
+    b = (np.vstack([np.zeros(np.size(Data,1)),np.identity(np.size(Data,1)),np.zeros(((lags-1)*np.size(Data,1),np.size(Data,1)))])).flatten('F')
+    Omega = np.zeros((1+lags*np.size(Data,1),1+lags*np.size(Data,1)))
+    Omega[0,0]= 10**6
+    Omega[1:,1:] = np.kron(np.diag(np.linspace(1,lags,num=lags)),np.diag(AR_1(Data)**(-1)))*lambd**2
+    return np.reshape(b,(np.size(Data,1),1+np.size(Data,1)*lags)), Omega
+
+def b_Var(Data,lags,b, Omega):
+    x = create_x(Data,lags)
+    B = np.inv(x.T@x+np.inv(Omega))@(x.T@Data[lags:,:]+inv(Omega)@b)
+    return B
+
+
+
+
+#def part_b(Data,lags,sample_end=60):
             
 
+#%%
 
 
 #%%
-Matlab_file= loadmat('dataVARmedium.mat')
+Matlab_file = loadmat('dataVARmedium.mat')
 Dataset = Matlab_file['y']
 
-# test = np.array([[0,0],[1,2],[1.5,3],[2,1],[3,2],[1,4],[2,5],[2,2]])
-# values = Var(test,1)
-# print(values)
-# print(forecast(test,1,values,2))
-# print(values[1,0]+values[1,2]*(values[1,0]+values[1,1]*2+values[1,2]*2)+values[1,1]*(values[0,0]+values[0,1]*2+values[0,2]*2))
-
+#print(minnesota_prior(Dataset, 5, 0.2))
 
 print(part_a(Dataset,5))
     
