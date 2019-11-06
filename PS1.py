@@ -96,10 +96,10 @@ def part_a(Data,lags,sample_end=60):
             forecast_4 = forecast(sample,lags,coefficients,4)
             quarter_4_gdp[t] = (forecast_4[0]-Data[t+5+60,0])/4
             quarter_4_infl[t] = (forecast_4[1]-Data[t+5+60,0])/4
-    MSFE_gdp_1 = np.sum(quarter_1_gdp**2)
-    MSFE_gdp_4 = np.sum(quarter_4_gdp**2)  
-    MSFE_infl_1 = np.sum(quarter_1_infl**2)  
-    MSFE_infl_4 = np.sum(quarter_4_infl**2)
+    MSFE_gdp_1 = np.sum(quarter_1_gdp**2)/np.size(quarter_1_gdp)
+    MSFE_gdp_4 = np.sum(quarter_4_gdp**2)/np.size(quarter_4_gdp)  
+    MSFE_infl_1 = np.sum(quarter_1_infl**2)/np.size(quarter_1_infl)  
+    MSFE_infl_4 = np.sum(quarter_4_infl**2)/np.size(quarter_4_infl) 
     return MSFE_gdp_1, MSFE_gdp_4, MSFE_infl_1, MSFE_infl_4
 
 def AR_1(Data):
