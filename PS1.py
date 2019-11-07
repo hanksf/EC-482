@@ -26,7 +26,7 @@ def Sims_Uhlig(n_sims=10000, series_length=100, true_prior = [0.8, 1.1, 31],y_0=
 
 def empirical_densities(n_sims=10000, series_length=100, true_prior = [0.8, 1.1, 31],y_0=0):
     draw_estimates, rho_grid = Sims_Uhlig(n_sims=n_sims, series_length=series_length, true_prior = true_prior,y_0=y_0)
-    fig, axes = plt.subplots(2, 2, figsize=(10,15))
+    fig, axes = plt.subplots(2, 2, figsize=(10,15), sharex=True)
     #fig, axes = plt.subplots(2,2)
     axes[0,0].hist(draw_estimates[10,:], bins=20, density=True)
     axes[0,0].set(title='rho = 0.9')
@@ -165,7 +165,7 @@ def errors(Data,lags,coef):
     epsilon_hat = np.reshape(epsilon_hat,(np.size(Data,0)-lags,np.size(Data,1)))
     return epsilon_hat.T@epsilon_hat
 
-def optimal_lambda(Data, lags, n, T, d, grid_points=100):
+def optimal_lambda(Data, lags, n, T, d, grid_points=50):
     lambda_grid = np.geomspace(0.03,2,num=grid_points)
     postierior_lambda = np.zeros(grid_points)
     for j in range(grid_points):
@@ -178,7 +178,7 @@ def optimal_lambda(Data, lags, n, T, d, grid_points=100):
         # test1 = np.log(np.linalg.det(x.T@x+np.linalg.inv(Omega))**(-n/2))
         # test3 = np.log(np.linalg.det(Omega)**(-n/2))
         # test2 = np.log(np.linalg.det(phi+error+((coefficients-b.T))@np.linalg.inv(Omega)@((coefficients-b.T).T))**(-(T+d)/2))
-        postierior_lambda[j] = np.log(np.linalg.det(Omega)**(-n/2)) + np.log(np.linalg.det(x.T@x+np.linalg.inv(Omega))**(-n/2))+ np.log(np.linalg.det(phi+error+((coefficients-b.T))@np.linalg.inv(Omega)@((coefficients-b.T).T))**(-(T+d)/2))
+        postierior_lambda[j] = (-n/2)*np.log(np.linalg.det(Omega)) + (-n/2)*np.log(np.linalg.det(x.T@x+np.linalg.inv(Omega)))+ np.log(np.linalg.det(phi+error+((coefficients-b.T))@np.linalg.inv(Omega)@((coefficients-b.T).T)))*(-(T+d)/2)
     opt_lambda = lambda_grid[np.argmax(postierior_lambda)]
     return opt_lambda
 
@@ -219,10 +219,13 @@ Dataset = Matlab_file['y']
 
 
 
-# print(part_a(Dataset,5))
-# print(part_b(Dataset,5))
-# MSFE1, MSFE2, MSFE3, MSFE4, path =part_c(Dataset,5)
-# print(MSFE1, MSFE2, MSFE3, MSFE4)
-# plt.plot(path)
-# plt.show()
+print(part_a(Dataset,5))
+print(part_b(Dataset,5))
+MSFE1, MSFE2, MSFE3, MSFE4, path =part_c(Dataset,5)
+print(MSFE1, MSFE2, MSFE3, MSFE4)
+fig, ax = plt.subplots()
+ax.plot(path, 'b-', label='Optimal lambda', linewidth=2,alpha=0.6)
+ax.set_title('Optimal lambda over time')
+ax.set(xlabel='', ylabel='lambda')
+plt.show()
 
