@@ -48,7 +48,7 @@ def empirical_densities(n_sims=10000, series_length=100, true_prior = [0.8, 1.1,
 #print(test)
 
 #%%
-#empirical_densities()
+empirical_densities()
 
 #%%
 #Question 2 functions
@@ -90,24 +90,24 @@ def forecast(Data,lags, coef,periods_ahead):
 
 def part_a(Data,lags,sample_end=64):
     quarter_1_gdp = np.zeros(np.size(Data,0)-sample_end)
-    quarter_4_gdp = np.zeros(np.size(Data,0)-sample_end-4)
+    quarter_4_gdp = np.zeros(np.size(Data,0)-sample_end-3)
     quarter_1_infl = np.zeros(np.size(Data,0)-sample_end)
-    quarter_4_infl = np.zeros(np.size(Data,0)-sample_end-4)
-    for t in range(np.size(Data,0)-sample_end-1):
-        sample = Data[:t+1+sample_end,:]
+    quarter_4_infl = np.zeros(np.size(Data,0)-sample_end-3)
+    for t in range(np.size(Data,0)-sample_end):
+        sample = Data[:t+sample_end,:]
         coefficients = Var(sample,lags)
         forecast_1 = forecast(sample,lags,coefficients,1)
-        quarter_1_gdp[t] = forecast_1[0]-Data[t+1+sample_end,0]
-        quarter_1_infl[t] = forecast_1[1]-Data[t+1+sample_end,1]
-        if t+4+sample_end<=199:
+        quarter_1_gdp[t] = forecast_1[0]-Data[t+sample_end,0]
+        quarter_1_infl[t] = forecast_1[1]-Data[t+sample_end,1]
+        if t+3+sample_end<=199:
             forecast_4 = forecast(sample,lags,coefficients,4)
-            quarter_4_gdp[t] = (forecast_4[0]-Data[t+4+sample_end,0])/4
-            quarter_4_infl[t] = (forecast_4[1]-Data[t+4+sample_end,1])/4
+            quarter_4_gdp[t] = (forecast_4[0]-Data[t+3+sample_end,0])/4
+            quarter_4_infl[t] = (forecast_4[1]-Data[t+3+sample_end,1])/4
     MSFE_gdp_1 = np.sum(quarter_1_gdp**2)/np.size(quarter_1_gdp)
     MSFE_gdp_4 = np.sum(quarter_4_gdp**2)/np.size(quarter_4_gdp)  
     MSFE_infl_1 = np.sum(quarter_1_infl**2)/np.size(quarter_1_infl)  
     MSFE_infl_4 = np.sum(quarter_4_infl**2)/np.size(quarter_4_infl) 
-    return MSFE_gdp_1, MSFE_gdp_4, MSFE_infl_1, MSFE_infl_4, quarter_1_gdp, quarter_1_infl
+    return MSFE_gdp_1, MSFE_gdp_4, MSFE_infl_1, MSFE_infl_4
 
 def AR_1(Data):
     Estimates = np.zeros(np.size(Data,1))
@@ -138,20 +138,20 @@ def b_Var(Data,lags,b, Omega):
 
 def part_b(Data,lags,sample_end=64,lambd=0.2):
     quarter_1_gdp = np.zeros(np.size(Data,0)-sample_end)
-    quarter_4_gdp = np.zeros(np.size(Data,0)-sample_end-4)
+    quarter_4_gdp = np.zeros(np.size(Data,0)-sample_end-3)
     quarter_1_infl = np.zeros(np.size(Data,0)-sample_end)
-    quarter_4_infl = np.zeros(np.size(Data,0)-sample_end-4)
-    for t in range(np.size(Data,0)-sample_end-1):
-        sample = Data[:t+1+sample_end,:]
+    quarter_4_infl = np.zeros(np.size(Data,0)-sample_end-3)
+    for t in range(np.size(Data,0)-sample_end):
+        sample = Data[:t+sample_end,:]
         b, Omega = minnesota_prior(Data,lags, lambd)
         coefficients = b_Var(sample,lags, b, Omega)
         forecast_1 = forecast(sample,lags,coefficients,1)
-        quarter_1_gdp[t] = forecast_1[0]-Data[t+1+sample_end,0]
-        quarter_1_infl[t] = forecast_1[1]-Data[t+1+sample_end,1]
-        if t+4+sample_end<=199:
+        quarter_1_gdp[t] = forecast_1[0]-Data[t+sample_end,0]
+        quarter_1_infl[t] = forecast_1[1]-Data[t+sample_end,1]
+        if t+3+sample_end<=199:
             forecast_4 = forecast(sample,lags,coefficients,4)
-            quarter_4_gdp[t] = (forecast_4[0]-Data[t+4+sample_end,0])/4
-            quarter_4_infl[t] = (forecast_4[1]-Data[t+4+sample_end,1])/4
+            quarter_4_gdp[t] = (forecast_4[0]-Data[t+3+sample_end,0])/4
+            quarter_4_infl[t] = (forecast_4[1]-Data[t+3+sample_end,1])/4
     MSFE_gdp_1 = np.sum(quarter_1_gdp**2)/np.size(quarter_1_gdp)
     MSFE_gdp_4 = np.sum(quarter_4_gdp**2)/np.size(quarter_4_gdp)  
     MSFE_infl_1 = np.sum(quarter_1_infl**2)/np.size(quarter_1_infl)  
@@ -184,23 +184,23 @@ def optimal_lambda(Data, lags, n, T, d, grid_points=100):
 
 def part_c(Data,lags,sample_end=64):
     quarter_1_gdp = np.zeros(np.size(Data,0)-sample_end)
-    quarter_4_gdp = np.zeros(np.size(Data,0)-sample_end-4)
+    quarter_4_gdp = np.zeros(np.size(Data,0)-sample_end-3)
     quarter_1_infl = np.zeros(np.size(Data,0)-sample_end)
-    quarter_4_infl = np.zeros(np.size(Data,0)-sample_end-4)
+    quarter_4_infl = np.zeros(np.size(Data,0)-sample_end-3)
     lambda_path = np.zeros(np.size(Data,0)-sample_end)
-    for t in range(np.size(Data,0)-sample_end-1):
-        sample = Data[:t+1+sample_end,:]
+    for t in range(np.size(Data,0)-sample_end):
+        sample = Data[:t+sample_end,:]
         lambd = optimal_lambda(sample, lags, np.size(sample,1), np.size(sample,0)-lags,np.size(sample,1)+2)
         lambda_path[t] = lambd
         b, Omega = minnesota_prior(sample,lags, lambd)
         coefficients = b_Var(sample,lags, b, Omega)
         forecast_1 = forecast(sample,lags,coefficients,1)
-        quarter_1_gdp[t] = forecast_1[0]-Data[t+1+sample_end,0]
-        quarter_1_infl[t] = forecast_1[1]-Data[t+1+sample_end,1]
-        if t+4+sample_end<=199:
+        quarter_1_gdp[t] = forecast_1[0]-Data[t+sample_end,0]
+        quarter_1_infl[t] = forecast_1[1]-Data[t+sample_end,1]
+        if t+3+sample_end<=199:
             forecast_4 = forecast(sample,lags,coefficients,4)
-            quarter_4_gdp[t] = (forecast_4[0]-Data[t+4+60,0])/4
-            quarter_4_infl[t] = (forecast_4[1]-Data[t+4+60,1])/4
+            quarter_4_gdp[t] = (forecast_4[0]-Data[t+3+60,0])/4
+            quarter_4_infl[t] = (forecast_4[1]-Data[t+3+60,1])/4
         MSFE_gdp_1 = np.sum(quarter_1_gdp**2)/np.size(quarter_1_gdp)
     MSFE_gdp_4 = np.sum(quarter_4_gdp**2)/np.size(quarter_4_gdp)  
     MSFE_infl_1 = np.sum(quarter_1_infl**2)/np.size(quarter_1_infl)  
@@ -214,7 +214,8 @@ def part_c(Data,lags,sample_end=64):
 Matlab_file = loadmat('dataVARmedium.mat')
 Dataset = Matlab_file['y']
 
-#print(minnesota_prior(Dataset, 5, 0.2))
+
+
 
 
 
