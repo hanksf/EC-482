@@ -107,7 +107,7 @@ def part_a(Data,lags,sample_end=64):
     MSFE_gdp_4 = np.sum(quarter_4_gdp**2)/np.size(quarter_4_gdp)  
     MSFE_infl_1 = np.sum(quarter_1_infl**2)/np.size(quarter_1_infl)  
     MSFE_infl_4 = np.sum(quarter_4_infl**2)/np.size(quarter_4_infl) 
-    return MSFE_gdp_1, MSFE_gdp_4, MSFE_infl_1, MSFE_infl_4
+    return MSFE_gdp_1, MSFE_gdp_4, MSFE_infl_1, MSFE_infl_4, quarter_1_gdp, quarter_1_infl
 
 def AR_1(Data):
     Estimates = np.zeros(np.size(Data,1))
@@ -124,7 +124,8 @@ def minnesota_prior(Data,lags, lambd):
     b = (np.vstack([np.zeros(np.size(Data,1)),np.identity(np.size(Data,1)),np.zeros(((lags-1)*np.size(Data,1),np.size(Data,1)))])).flatten('F')
     Omega = np.zeros((1+lags*np.size(Data,1),1+lags*np.size(Data,1)))
     Omega[0,0]= 10**6
-    Omega[1:,1:] = np.kron(np.diag(np.linspace(1,lags,num=lags)),np.diag(AR_1(Data)**(-1)))*lambd**2
+    # the diagonal linspace is s
+    Omega[1:,1:] = np.kron(np.diag(np.float_power(np.linspace(1,lags,num=lags),-2)),np.diag(AR_1(Data)**(-1)))*lambd**2
     return np.reshape(b,(np.size(Data,1),1+np.size(Data,1)*lags)).T, Omega
 
 def b_Var(Data,lags,b, Omega):
@@ -164,18 +165,20 @@ def errors(Data,lags,coef):
     epsilon_hat = np.reshape(epsilon_hat,(np.size(Data,0)-lags,np.size(Data,1)))
     return epsilon_hat.T@epsilon_hat
 
-def optimal_lambda(Data, lags, n, T, d):
-    lambda_grid = np.logspace(0.05,5,num=50)
-    postierior_lambda = np.zeros(50)
-    for j in range(50):
+def optimal_lambda(Data, lags, n, T, d, grid_points=100):
+    lambda_grid = np.geomspace(0.03,2,num=grid_points)
+    postierior_lambda = np.zeros(grid_points)
+    for j in range(grid_points):
         lambd = lambda_grid[j]
         b, Omega = minnesota_prior(Data,lags, lambd)
         coefficients = b_Var(Data,lags, b, Omega)
-        error_sq = errors(Data, lags,coefficients)
+        error = errors(Data, lags,coefficients)
         phi = np.diag(AR_1(Data))
         x = create_x(Data,lags)
-        # I don't think phi is needed as it is constant across lambda (numpy.linalg.det(phi)**(-d/2)
-        postierior_lambda[j] = np.log(numpy.linalg.det(x.T@x+np.linalg.inv(Omega))**(-m/2)*np.linalg.det(phi+error+((coefficients-b).T)@np.linalg.inv(Omega)@(coefficients-b))**(-(T+d)/2))
+        # test1 = np.log(np.linalg.det(x.T@x+np.linalg.inv(Omega))**(-n/2))
+        # test3 = np.log(np.linalg.det(Omega)**(-n/2))
+        # test2 = np.log(np.linalg.det(phi+error+((coefficients-b.T))@np.linalg.inv(Omega)@((coefficients-b.T).T))**(-(T+d)/2))
+        postierior_lambda[j] = np.log(np.linalg.det(Omega)**(-n/2)) + np.log(np.linalg.det(x.T@x+np.linalg.inv(Omega))**(-n/2))+ np.log(np.linalg.det(phi+error+((coefficients-b.T))@np.linalg.inv(Omega)@((coefficients-b.T).T))**(-(T+d)/2))
     opt_lambda = lambda_grid[np.argmax(postierior_lambda)]
     return opt_lambda
 
@@ -184,8 +187,11 @@ def part_c(Data,lags,sample_end=64):
     quarter_4_gdp = np.zeros(np.size(Data,0)-sample_end-4)
     quarter_1_infl = np.zeros(np.size(Data,0)-sample_end)
     quarter_4_infl = np.zeros(np.size(Data,0)-sample_end-4)
+    lambda_path = np.zeros(np.size(Data,0)-sample_end)
     for t in range(np.size(Data,0)-sample_end-1):
         sample = Data[:t+1+sample_end,:]
+        lambd = optimal_lambda(sample, lags, np.size(sample,1), np.size(sample,0)-lags,np.size(sample,1)+2)
+        lambda_path[t] = lambd
         b, Omega = minnesota_prior(sample,lags, lambd)
         coefficients = b_Var(sample,lags, b, Omega)
         forecast_1 = forecast(sample,lags,coefficients,1)
@@ -195,7 +201,11 @@ def part_c(Data,lags,sample_end=64):
             forecast_4 = forecast(sample,lags,coefficients,4)
             quarter_4_gdp[t] = (forecast_4[0]-Data[t+4+60,0])/4
             quarter_4_infl[t] = (forecast_4[1]-Data[t+4+60,1])/4
-
+        MSFE_gdp_1 = np.sum(quarter_1_gdp**2)/np.size(quarter_1_gdp)
+    MSFE_gdp_4 = np.sum(quarter_4_gdp**2)/np.size(quarter_4_gdp)  
+    MSFE_infl_1 = np.sum(quarter_1_infl**2)/np.size(quarter_1_infl)  
+    MSFE_infl_4 = np.sum(quarter_4_infl**2)/np.size(quarter_4_infl) 
+    return MSFE_gdp_1, MSFE_gdp_4, MSFE_infl_1, MSFE_infl_4, lambda_path   
 
 #%%
 
@@ -204,12 +214,14 @@ def part_c(Data,lags,sample_end=64):
 Matlab_file = loadmat('dataVARmedium.mat')
 Dataset = Matlab_file['y']
 
-test = Var(Dataset,5)
-print(errors(Dataset,5,test).shape)
-
 #print(minnesota_prior(Dataset, 5, 0.2))
+
+
 
 # print(part_a(Dataset,5))
 # print(part_b(Dataset,5))
-
+# MSFE1, MSFE2, MSFE3, MSFE4, path =part_c(Dataset,5)
+# print(MSFE1, MSFE2, MSFE3, MSFE4)
+# plt.plot(path)
+# plt.show()
 
