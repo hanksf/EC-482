@@ -7,7 +7,8 @@ import pandas as pd
 
 
 ## Question 1
-## columns are ouput, prices, unemployment, Pcom, M2, interest rate
+## columns are ouput, prices, unemployment, Commodity price, M2, interest rate the rest don't matter
 df = pd.read_excel(r'SZdata.xlsx')
 Data = df.as_matrix()
+Data = Data[:,1:7]
 print(Data)
