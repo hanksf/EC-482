@@ -1,7 +1,7 @@
 #Ignore all csv files
-.csv
-.xlsx
+*.csv
+*.xlsx
 
 #ignore all matlab files
-.mat
+*.mat
 
