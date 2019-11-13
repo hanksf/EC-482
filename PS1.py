@@ -24,31 +24,36 @@ def Sims_Uhlig(n_sims=10000, series_length=100, true_prior = [0.8, 1.1, 31],y_0=
         estimates[i,:] = np.diagonal(y_matrix[1:].T@y_matrix[:series_length])/np.diagonal(y_matrix[:series_length].T@y_matrix[:series_length])
     return estimates, rho_grid
 
-def empirical_densities(n_sims=10000, series_length=100, true_prior = [0.8, 1.1, 31],y_0=0):
+def empirical_densities(n_sims=10000, series_length=100, true_prior = [0.8, 1.1, 31],y_0=0, last_plot=True):
     draw_estimates, rho_grid = Sims_Uhlig(n_sims=n_sims, series_length=series_length, true_prior = true_prior,y_0=y_0)
-    fig, axes = plt.subplots(2, 2, figsize=(10,15), sharex=True)
+    fig, axes = plt.subplots(2, 2, figsize=(10,15))
     #fig, axes = plt.subplots(2,2)
-    axes[0,0].hist(draw_estimates[10,:], bins=20, density=True)
+    axes[0,0].hist(draw_estimates[10,:], bins=50, density=True)
     axes[0,0].set(title='rho = 0.9')
-    axes[1,0].hist(draw_estimates[20,:], bins =20, density=True)
+    axes[0,0].set_xlim([0.8,1.1])
+    axes[1,0].hist(draw_estimates[20,:], bins =50, density=True)
     axes[1,0].set(title='rho = 1')
+    axes[1,0].set_xlim([0.8,1.1])
     #creating estimates of density conditional on rho_hat
     index1  = (draw_estimates>0.895)*(draw_estimates<0.905)
     density1 = np.sum(index1,axis=1)/np.sum(index1)
     axes[0,1].bar(rho_grid,density1,0.01)
     axes[0,1].set(title='rho_hat = 0.9')
+    axes[0,1].set_xlim([0.8,1.1])
     index2 = (draw_estimates>0.995)*(draw_estimates<1.005)
     density2 = np.sum(index2,axis=1)/np.sum(index2)
     axes[1,1].bar(rho_grid,density2,0.01)
     axes[1,1].set(title='rho_hat = 1')
-    plt.show()
+    axes[1,1].set_xlim([0.8,1.1])
+    plt.show(block = last_plot)
 
 #%%
 #test = Sims_Uhlig()
 #print(test)
 
 #%%
-empirical_densities()
+empirical_densities(last_plot=False)
+empirical_densities(series_length=500)
 
 #%%
 #Question 2 functions
@@ -211,21 +216,21 @@ def part_c(Data,lags,sample_end=64):
 
 
 #%%
-Matlab_file = loadmat('dataVARmedium.mat')
-Dataset = Matlab_file['y']
+# Matlab_file = loadmat('dataVARmedium.mat')
+# Dataset = Matlab_file['y']
 
 
 
 
 
 
-print(part_a(Dataset,5))
-print(part_b(Dataset,5))
-MSFE1, MSFE2, MSFE3, MSFE4, path =part_c(Dataset,5)
-print(MSFE1, MSFE2, MSFE3, MSFE4)
-fig, ax = plt.subplots()
-ax.plot(path, 'b-', label='Optimal lambda', linewidth=2,alpha=0.6)
-ax.set_title('Optimal lambda over time')
-ax.set(xlabel='', ylabel='lambda')
-plt.show()
+# print(part_a(Dataset,5))
+# print(part_b(Dataset,5))
+# MSFE1, MSFE2, MSFE3, MSFE4, path =part_c(Dataset,5)
+# print(MSFE1, MSFE2, MSFE3, MSFE4)
+# fig, ax = plt.subplots()
+# ax.plot(path, 'b-', label='Optimal lambda', linewidth=2,alpha=0.6)
+# ax.set_title('Optimal lambda over time')
+# ax.set(xlabel='', ylabel='lambda')
+# plt.show()
 
