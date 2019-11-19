@@ -61,6 +61,24 @@ def minnesota_prior(Data,lags, lambd):
     Omega[1:,1:] = np.kron(np.diag(np.float_power(np.linspace(1,lags,num=lags),-2)),np.diag(AR_1(Data)**(-1)))*lambd**2
     return np.reshape(b,(np.size(Data,1),1+np.size(Data,1)*lags)).T, Omega
 
+def initial_average(Data,lags):
+    y_0 = np.mean(Data[:lags,:],axis=0)
+    return y_0
+
+def SoC_dummy(Data,lags,mu):
+    """
+    Create Y and X with the dummy observations included
+    """
+    #Creating Y
+    bar_y0 = initial_average(Data,lags)
+    dummy_obs = np.identiy(np.size(Data,0))@bar_y0/mu
+    Y = np.vstack(Data[lags:,:],dummy_obs).flatten('F')
+    #Creating X
+    x = create_x(Data,lags)
+    dummy_x = np.hstack(np.zeros((np.size(Data,1),1)),np.repeat(dummy_obs,lags))
+    X = np.kron(np.identity(np.size(Data,1)+1),np.vstack(x,dummy_x))
+
+
 def b_Var(Data,lags,b, Omega):
     x = create_x(Data,lags)
     B = (np.linalg.inv(x.T@x+np.linalg.inv(Omega))@(x.T@Data[lags:,:]+np.linalg.inv(Omega)@b)).T

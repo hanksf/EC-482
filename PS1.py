@@ -52,8 +52,8 @@ def empirical_densities(n_sims=10000, series_length=100, true_prior = [0.8, 1.1,
 #print(test)
 
 #%%
-empirical_densities(last_plot=False)
-empirical_densities(series_length=500)
+#empirical_densities(last_plot=False)
+#empirical_densities(series_length=500)
 
 #%%
 #Question 2 functions
@@ -216,21 +216,22 @@ def part_c(Data,lags,sample_end=64):
 
 
 #%%
-# Matlab_file = loadmat('dataVARmedium.mat')
-# Dataset = Matlab_file['y']
+Matlab_file = loadmat('dataVARmedium.mat')
+Dataset = Matlab_file['y']
+Dataset = Dataset*100
 
 
 
 
 
 
-# print(part_a(Dataset,5))
-# print(part_b(Dataset,5))
-# MSFE1, MSFE2, MSFE3, MSFE4, path =part_c(Dataset,5)
-# print(MSFE1, MSFE2, MSFE3, MSFE4)
-# fig, ax = plt.subplots()
-# ax.plot(path, 'b-', label='Optimal lambda', linewidth=2,alpha=0.6)
-# ax.set_title('Optimal lambda over time')
-# ax.set(xlabel='', ylabel='lambda')
-# plt.show()
+print(part_a(Dataset,5))
+print(part_b(Dataset,5))
+MSFE1, MSFE2, MSFE3, MSFE4, path =part_c(Dataset,5)
+print(MSFE1, MSFE2, MSFE3, MSFE4)
+fig, ax = plt.subplots()
+ax.plot(path, 'b-', label='Optimal lambda', linewidth=2,alpha=0.6)
+ax.set_title('Optimal lambda over time')
+ax.set(xlabel='', ylabel='lambda')
+plt.show()
 
