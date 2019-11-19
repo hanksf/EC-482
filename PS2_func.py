@@ -72,14 +72,25 @@ def SoC_dummy(Data,lags,mu):
     #Creating Y
     bar_y0 = initial_average(Data,lags)
     dummy_obs = np.identiy(np.size(Data,0))@bar_y0/mu
-    Y = np.vstack(Data[lags:,:],dummy_obs).flatten('F')
+    Y = np.vstack(Data[lags:,:],dummy_obs)
     #Creating X
     x = create_x(Data,lags)
     dummy_x = np.hstack(np.zeros((np.size(Data,1),1)),np.repeat(dummy_obs,lags))
     X = np.kron(np.identity(np.size(Data,1)+1),np.vstack(x,dummy_x))
+    return Y,X, np.vstack(x,dummy_x)
 
 
-def b_Var(Data,lags,b, Omega):
-    x = create_x(Data,lags)
-    B = (np.linalg.inv(x.T@x+np.linalg.inv(Omega))@(x.T@Data[lags:,:]+np.linalg.inv(Omega)@b)).T
+def b_Var(Y,x,lags,b, Omega):
+    B = (np.linalg.inv(x.T@x+np.linalg.inv(Omega))@(x.T@Y+np.linalg.inv(Omega)@b)).T
     return B
+
+def S(Y,B,x)
+
+def postior_mode_A0()
+
+def part_1(Data,lags,lambd,mu):
+    b , omega = minnesota_prior(Data,lags, lambd)
+    Yp, Xp, xp = SoC_dummy(Data,lags, mu)
+    B = b_Var(Yp,xp,lags,b,omega)
+
+
