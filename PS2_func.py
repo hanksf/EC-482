@@ -84,9 +84,19 @@ def b_Var(Y,x,lags,b, Omega):
     B = (np.linalg.inv(x.T@x+np.linalg.inv(Omega))@(x.T@Y+np.linalg.inv(Omega)@b)).T
     return B
 
-def S(Y,B,x)
+def S(Y,B,x):
+    residuals = Y-x@B
+    residuals = residuals**2
+    SoSR = np.sum(residuals)
+    return SoSR
 
-def postior_mode_A0()
+
+def postior_mode_A0(B,b,S,Omega,T,p,n):
+    def log_post(A0):
+        piece_1 = np.log(np.linalg.det(A0)**(T-p+n))
+        piece_2 = -0.5*np.trace(S+(B-b).T@np.linalg.inv(Omega)@(B-b))@(A0.T@A0)
+        return -piece_1-piece_2
+    mode = sci.optimize.minimize(log_post(A0),np.identity(n))
 
 def part_1(Data,lags,lambd,mu):
     b , omega = minnesota_prior(Data,lags, lambd)
