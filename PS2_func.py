@@ -45,7 +45,10 @@ def forecast(Data,lags, coef,periods_ahead):
 def AR_1(Data):
     Estimates = np.zeros(np.size(Data,1))
     for j in range(np.size(Data,1)):
-        ar_coeff = ((Data[1:,j].T)@Data[:np.size(Data,0)-1,j])/((Data[:np.size(Data,0)-1,j].T)@Data[:np.size(Data,0)-1,j])
+        y = Data[1:,j]
+        x = Data[:np.size(Data,0)-1,j]
+        ar_coeff = (x.T@y)/(x.T@x)
+        #ar_coeff = ((Data[1:,j].T)@Data[:np.size(Data,0)-1,j])/((Data[:np.size(Data,0)-1,j].T)@Data[:np.size(Data,0)-1,j])
         errors = Data[:np.size(Data,0)-1,j] - ar_coeff* Data[1:,j]
         Estimates[j] = np.sum(errors**2)/(np.size(Data,0)-1)
     return Estimates
