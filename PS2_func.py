@@ -71,7 +71,7 @@ def SoC_dummy(Data,lags,mu):
     """
     #Creating Y
     bar_y0 = initial_average(Data,lags)
-    dummy_obs = np.identiy(np.size(Data,0))@bar_y0/mu
+    dummy_obs = np.identity(np.size(Data,0))@bar_y0/mu
     Y = np.vstack(Data[lags:,:],dummy_obs)
     #Creating X
     x = create_x(Data,lags)
@@ -96,11 +96,16 @@ def postior_mode_A0(B,b,S,Omega,T,p,n):
         piece_1 = np.log(np.linalg.det(A0)**(T-p+n))
         piece_2 = -0.5*np.trace(S+(B-b).T@np.linalg.inv(Omega)@(B-b))@(A0.T@A0)
         return -piece_1-piece_2
-    mode = sci.optimize.minimize(log_post(A0),np.identity(n))
+    cons = ({'type': 'eq', 'log_post': lambda A0: A0[5,0]},{'type': 'eq', 'log_post': lambda A0: A0[5,1]},{'type': 'eq', 'log_post': lambda A0: A0[5,2]},{'type': 'eq', 'log_post': lambda A0: A0[5,3]},{'type': 'eq', 'log_post': lambda A0: A0[4,2]},{'type': 'eq', 'log_post': lambda A0: A0[4,3]},{'type': 'eq', 'log_post': lambda A0: A0[5,0]},{'type': 'eq', 'log_post': lambda A0: A0[0,1]},{'type': 'eq', 'log_post': lambda A0: A0[0,2]},{'type': 'eq', 'log_post': lambda A0: A0[0,3]},{'type': 'eq', 'log_post': lambda A0: A0[0,4]},{'type': 'eq', 'log_post': lambda A0: A0[0,5]},{'type': 'eq', 'log_post': lambda A0: A0[1,2]},{'type': 'eq', 'log_post': lambda A0: A0[1,3]},{'type': 'eq', 'log_post': lambda A0: A0[1,4]},{'type': 'eq', 'log_post': lambda A0: A0[1,5]},{'type': 'eq', 'log_post': lambda A0: A0[2,3]},{'type': 'eq', 'log_post': lambda A0: A0[2,4]},{'type': 'eq', 'log_post': lambda A0: A0[2,5]})
+    mode = sci.optimize.minimize(log_post,np.identity(n), method='SLSQP',constraints=cons)
+    return mode
 
 def part_1(Data,lags,lambd,mu):
     b , omega = minnesota_prior(Data,lags, lambd)
     Yp, Xp, xp = SoC_dummy(Data,lags, mu)
     B = b_Var(Yp,xp,lags,b,omega)
+    residuals = S(Yp,B,xp)
+    print(postior_mode_A0(B,b,residuals,omega,np.size(Data,0)-lags,lags,np.size(Data,1)))
+    return
 
 

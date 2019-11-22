@@ -2,7 +2,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import scipy as sci
-import PS2_func
+import PS2_func as P2
 import pandas as pd
 
 
@@ -11,4 +11,5 @@ import pandas as pd
 df = pd.read_excel(r'SZdata.xlsx')
 Data = df.as_matrix()
 Data = Data[:,1:7]
-print(Data)
+
+P2.part_1(Data,13,0.2,1)
