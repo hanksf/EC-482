@@ -2,7 +2,7 @@
 #%%
 import numpy as np
 import matplotlib.pyplot as plt
-import scipy as sci
+from scipy import optimize
 import PS2_func as P2
 import pandas as pd
 

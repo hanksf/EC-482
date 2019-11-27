@@ -100,11 +100,15 @@ def a2A(a):
 def postior_mode_A0(B,b,S,Omega,T,p,n):
     def log_post(a):
         A0 = a2A(a)
+        if np.linalg.det(A0)<0:
+            return 99999999999
         piece_1 = np.log(np.linalg.det(A0)**(T-p+n))
-        piece_2 = -0.5*np.trace(S+(B-b)@np.linalg.inv(Omega)@(B-b).T)@(A0.T@A0)
+        piece_2 = -0.5*np.trace((S+((B.T-b).T)@np.linalg.inv(Omega)@(B.T-b))@(A0.T@A0))
         return -piece_1-piece_2
-    mode = optimize.minimize(log_post,np.identity(n))
-    return a2A(mode)
+    result = optimize.minimize(log_post,np.array([10,1,10,1,1,10,1,1,1,10,1,1,1,1,10,1,1,10]))
+    mode = result.x
+    inv_hessian = result.hess_inv
+    return a2A(mode),inv_hessian
 
 # def postior_mode_A0(B,b,S,Omega,T,p,n):
 #     def log_post(A0):
