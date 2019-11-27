@@ -116,7 +116,32 @@ def part_1(Data,lags,lambd,mu):
     Yp, Xp, xp = SoC_dummy(Data,lags, mu)
     B = b_Var(Yp,xp,lags,b,omega)
     residuals = S(Yp,B,xp)
-    print(postior_mode_A0(B,b,residuals,omega,np.size(Data,0)-lags,lags,np.size(Data,1)))
-    return
+    mode, inv_hess = postior_mode_A0(B,b,residuals,omega,np.size(Data,0)-lags,lags,np.size(Data,1))
+    return B, mode, inv_hess
 
+def IRF(B, A0, lags, variable, length):
+    IRF = np.zeros((np.size(B,axis=0),length))
+    IRF[variable-1,0] = np.linalg.inv(A0)[variable-1,variable-1] 
+    initial_Y = np.zeros((np.size(B,axis=0),lags))
+    initial_Y[variable-1,0] = IRF[variable-1,0]
+    predictors = np.hstack([np.ones(1),initial_Y.flatten('F')])
+    for t in range(length-1):
+        y_forward = B@predictors
+        IRF[:,t+1] = y_forward
+        predictors = np.insert(predictors[:predictors.size-y_forward.size],1,y_forward)
+    return IRF
+    
+
+
+
+
+
+# def MCMC(B,b,S,Omega,T,p,n,draws=5000, burnout=100,)
+
+# def part_3(Data,lags,lambd,mu):
+#     b , omega = minnesota_prior(Data,lags, lambd)
+#     Yp, Xp, xp = SoC_dummy(Data,lags, mu)
+#     B = b_Var(Yp,xp,lags,b,omega)
+#     residuals = S(Yp,B,xp)
+#     draws = MCMC()
 
