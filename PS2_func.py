@@ -101,23 +101,15 @@ def postior_mode_A0(B,b,S,Omega,T,p,n):
     def log_post(a):
         A0 = a2A(a)
         if np.linalg.det(A0)<0:
-            return 99999999999
-        piece_1 = np.log(np.linalg.det(A0)**(T-p+n))
+            return 999999999999999999999999999999
+        piece_1 = (T-p+n)*np.log(np.linalg.det(A0))
         piece_2 = -0.5*np.trace((S+((B.T-b).T)@np.linalg.inv(Omega)@(B.T-b))@(A0.T@A0))
         return -piece_1-piece_2
-    result = optimize.minimize(log_post,np.array([10,1,10,1,1,10,1,1,1,10,1,1,1,1,10,1,1,10]))
+    result = optimize.minimize(log_post,np.array([5,1,5,1,1,5,1,1,1,5,1,1,1,1,5,1,1,5])*0.205)
     mode = result.x
     inv_hessian = result.hess_inv
     return a2A(mode),inv_hessian
 
-# def postior_mode_A0(B,b,S,Omega,T,p,n):
-#     def log_post(A0):
-#         piece_1 = np.log(np.linalg.det(A0)**(T-p+n))
-#         piece_2 = -0.5*np.trace(S+(B-b).T@np.linalg.inv(Omega)@(B-b))@(A0.T@A0)
-#         return -piece_1-piece_2
-#     cons = ({'type': 'eq', 'log_post': lambda A0: A0[5,0]},{'type': 'eq', 'log_post': lambda A0: A0[5,1]},{'type': 'eq', 'log_post': lambda A0: A0[5,2]},{'type': 'eq', 'log_post': lambda A0: A0[5,3]},{'type': 'eq', 'log_post': lambda A0: A0[4,2]},{'type': 'eq', 'log_post': lambda A0: A0[4,3]},{'type': 'eq', 'log_post': lambda A0: A0[5,0]},{'type': 'eq', 'log_post': lambda A0: A0[0,1]},{'type': 'eq', 'log_post': lambda A0: A0[0,2]},{'type': 'eq', 'log_post': lambda A0: A0[0,3]},{'type': 'eq', 'log_post': lambda A0: A0[0,4]},{'type': 'eq', 'log_post': lambda A0: A0[0,5]},{'type': 'eq', 'log_post': lambda A0: A0[1,2]},{'type': 'eq', 'log_post': lambda A0: A0[1,3]},{'type': 'eq', 'log_post': lambda A0: A0[1,4]},{'type': 'eq', 'log_post': lambda A0: A0[1,5]},{'type': 'eq', 'log_post': lambda A0: A0[2,3]},{'type': 'eq', 'log_post': lambda A0: A0[2,4]},{'type': 'eq', 'log_post': lambda A0: A0[2,5]})
-#     mode = optimize.minimize(log_post,np.identity(n), method='SLSQP',constraints=cons)
-#     return mode
 
 def part_1(Data,lags,lambd,mu):
     b , omega = minnesota_prior(Data,lags, lambd)
