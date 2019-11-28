@@ -14,9 +14,9 @@ df = df.drop('date', axis = 1)
 Data = df.to_numpy()
 Data = Data[:,1:7]
 
-B, A0, inv_hess = P2.part_1(Data,13,0.2,1)
+B, a0, inv_hess = P2.part_1(Data,13,0.2,1)
 print(B)
-IRFS = P2.IRF(B,A0,13,6,100)
+IRFS = P2.IRF(B,P2.a2A(a0),13,6,100)
 #%%
 plt.plot(IRFS[1,:])
 plt.show()
