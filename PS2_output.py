@@ -17,7 +17,7 @@ Data = Data[:,1:7]
 B, A0, inv_hess = P2.part_1(Data,13,0.2,1)
 print(B)
 IRFS = P2.IRF(B,A0,13,6,100)
-
-plt.plot(IRFS[0,:])
+#%%
+plt.plot(IRFS[1,:])
 plt.show()
 

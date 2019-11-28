@@ -125,10 +125,13 @@ def IRF(B, A0, lags, variable, length):
     initial_Y = np.zeros((np.size(B,axis=0),lags))
     initial_Y[variable-1,0] = IRF[variable-1,0]
     predictors = np.hstack([np.ones(1),initial_Y.flatten('F')])
+    predictors_ns = np.hstack([np.ones(1),np.zeros(initial_Y.size)])
     for t in range(length-1):
         y_forward = B@predictors
-        IRF[:,t+1] = y_forward
+        y_forward_ns = B@predictors_ns
+        IRF[:,t+1] = y_forward - y_forward_ns
         predictors = np.insert(predictors[:predictors.size-y_forward.size],1,y_forward)
+        predictors_ns = np.insert(predictors_ns[:predictors_ns.size-y_forward.size],1,y_forward_ns)
     return IRF
     
 
