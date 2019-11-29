@@ -18,6 +18,5 @@ B, a0, inv_hess = P2.part_1(Data,13,0.2,1)
 print(B)
 IRFS = P2.IRF(B,P2.a2A(a0),13,6,100)
 #%%
-plt.plot(IRFS[1,:])
-plt.show()
+IRF_errors = P2.part_3(Data,13,0.2,1,10000,2,100,6)
 
