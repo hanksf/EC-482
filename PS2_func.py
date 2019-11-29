@@ -61,7 +61,7 @@ def minnesota_prior(Data,lags, lambd):
     Omega = np.zeros((1+lags*np.size(Data,1),1+lags*np.size(Data,1)))
     Omega[0,0]= 10**6
     # the diagonal linspace is s
-    Omega[1:,1:] = np.kron(np.diag(np.float_power(np.linspace(1,lags,num=lags),-2)),np.diag(AR_1(Data)**(-1)))*lambd**2
+    Omega[1:,1:] = np.kron(np.diag(1/(np.linspace(1,lags,num=lags)**2)),np.diag(AR_1(Data)**(-1)))*lambd**2
     return np.reshape(b,(np.size(Data,1),1+np.size(Data,1)*lags)).T, Omega
 
 def initial_average(Data,lags):
@@ -138,27 +138,7 @@ def IRF(B, A0, lags, variable, length):
     
 
 
-def MCMC_draw(postior,theta,c,inv_hess):
-    candidate = np.random.normal(theta,(c**2)*inv_hess)
-    if np.random.uniform()<=(postior(candidate)/postior(theta)):
-        return candidate
-    else:
-        return theta
-
-def draw_beta(B,a,x,omega):
-    beta = B.flatten()
-    A0=a2A(a)
-    draw = np.random.normal(beta,np.kron(np.linalg.inv(A0)@np.linalg.inv(A0).T,np.linalg.inv(x.T@x+np.linalg.inv(omega))))
-    return draw
-
-def part_3(Data,lags,lambd,mu,draws,c,length,variable):
-    b , omega = minnesota_prior(Data,lags, lambd)
-    Yp, Xp, xp = SoC_dummy(Data,lags, mu)
-    B = b_Var(Yp,xp,lags,b,omega)
-    residuals = S(Yp,B,xp)
-    mode, inv_hess = postior_mode_A0(B,b,residuals,omega,np.size(Data,0)-lags,lags,np.size(Data,1))
-    IRF_errors=np.zeros((np.size(B,axis=0),length,draws))
-    A_value = mode
+def MCMC_draw(theta,c,inv_hess,B,b,S,Omega,T,p,n):
     def log_postierior(a):
         A0 = a2A(a)
         if np.linalg.det(A0)<0:
@@ -166,11 +146,37 @@ def part_3(Data,lags,lambd,mu,draws,c,length,variable):
         piece_1 = (T-p+n)*np.log(np.linalg.det(A0))
         piece_2 = -0.5*np.trace((S+((B.T-b).T)@np.linalg.inv(Omega)@(B.T-b))@(A0.T@A0))
         return -piece_1-piece_2
+    candidate = np.random.multivariate_normal(theta,(c**2)*inv_hess)
+    if np.random.uniform()<=(log_postierior(candidate)/log_postierior(theta)):
+        return candidate
+    else:
+        return theta
+
+def draw_beta(B,a,x,omega):
+    beta = B.flatten()
+    A0=a2A(a)
+    variance1 = np.linalg.inv(A0)@np.linalg.inv(A0).T
+    variance2 = np.linalg.inv(x.T@x+np.linalg.inv(omega))
+    variance = np.kron(variance1,variance2)
+    draw = np.random.multivariate_normal(beta,variance)
+    return draw
+
+def part_3(Data,lags,lambd,mu,draws,c,length,variable):
+    b , omega = minnesota_prior(Data,lags, lambd)
+    Yp, Xp, xp = SoC_dummy(Data,lags, mu)
+    B = b_Var(Yp,xp,lags,b,omega)
+    residuals = S(Yp,B,xp)
+    T = np.size(Data,0)-lags
+    p = lags
+    n = np.size(Data,1)
+    mode, inv_hess = postior_mode_A0(B,b,residuals,omega,T,p,n)
+    IRF_errors=np.zeros((np.size(B,axis=0),length,draws))
+    A_value = mode
     for n in range(draws):
-        A_value = MCMC_draw(log_postierior,value,c,inv_hess)
-        B_value = draw_beta(B,A_value,xp,omega)
-        B_value = np.reshape(B_value,(np.size(Data,1),1+np.size(Data,1)*lags)).T
-        IRF_errors[:,:,n] = IRF(B_value,a2A(A_value),lags,variable,length)
+        A_value = MCMC_draw(A_value,c,inv_hess,B,b,residuals,omega,T,p,n)
+        #B_value = draw_beta(B,A_value,xp,omega)
+        #B_value = np.reshape(B_value,(np.size(Data,1),1+np.size(Data,1)*lags))
+        IRF_errors[:,:,n] = IRF(B,a2A(A_value),lags,variable,length)
     return IRF_errors
 
 # def MCMC(B,b,S,Omega,T,p,n,draws=5000, burnout=100,)
