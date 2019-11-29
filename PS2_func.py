@@ -97,16 +97,15 @@ def a2A(a):
     A = np.array([[a[0],0,0,0,0,0],[a[1],a[2],0,0,0,0],[a[3],a[4],a[5],0,0,0],[a[6],a[7],a[8],a[9],a[10],a[11]],[a[12],a[13],0,0,a[14],a[15]],[0,0,0,0,a[16],a[17]]])
     return A
 
-def log_post(a):
-    A0 = a2A(a)
-    if np.linalg.det(A0)<0:
-        return 999999999999999999999999999999
-    piece_1 = (T-p+n)*np.log(np.linalg.det(A0))
-    piece_2 = -0.5*np.trace((S+((B.T-b).T)@np.linalg.inv(Omega)@(B.T-b))@(A0.T@A0))
-    return -piece_1-piece_2
-
 
 def postior_mode_A0(B,b,S,Omega,T,p,n):
+    def log_post(a):
+        A0 = a2A(a)
+        if np.linalg.det(A0)<0:
+            return 999999999999999999999999999999
+        piece_1 = (T-p+n)*np.log(np.linalg.det(A0))
+        piece_2 = -0.5*np.trace((S+((B.T-b).T)@np.linalg.inv(Omega)@(B.T-b))@(A0.T@A0))
+        return -piece_1-piece_2
     result = optimize.minimize(log_post,np.array([5,1,5,1,1,5,1,1,1,5,1,1,1,1,5,1,1,5])*0.205)
     mode = result.x
     inv_hessian = result.hess_inv
@@ -125,7 +124,7 @@ def IRF(B, A0, lags, variable, length):
     IRF = np.zeros((np.size(B,axis=0),length))
     IRF[variable-1,0] = np.linalg.inv(A0)[variable-1,variable-1] 
     initial_Y = np.zeros((np.size(B,axis=0),lags))
-    initial_Y[variable-1,0] = IRF[variable-1,0]
+    initial_Y[:,0] = np.linalg.inv(A0)[:,variable-1]
     predictors = np.hstack([np.ones(1),initial_Y.flatten('F')])
     predictors_ns = np.hstack([np.ones(1),np.zeros(initial_Y.size)])
     for t in range(length-1):

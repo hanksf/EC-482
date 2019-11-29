@@ -12,7 +12,7 @@ import pandas as pd
 df = pd.read_excel(r'SZdata.xlsx')
 df = df.drop('date', axis = 1)
 Data = df.to_numpy()
-Data = Data[:,1:7]
+Data = Data[:,0:6]
 
 B, a0, inv_hess = P2.part_1(Data,13,0.2,1)
 print(B)
